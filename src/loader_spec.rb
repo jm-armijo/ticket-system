@@ -1,4 +1,4 @@
-require 'yaml'
+require 'diff/lcs'
 require_relative './loader'
 
 describe Loader do
