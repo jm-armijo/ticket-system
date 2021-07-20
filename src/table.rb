@@ -1,4 +1,5 @@
 require 'yaml'
+require_relative './row'
 
 class Table
     attr_reader :name
@@ -26,6 +27,6 @@ private
 
     def load_rows(path)
         rows = YAML.load_file(path)
-        @rows = rows.map { |row| row }
+        @rows = rows.map { |row| Row.new(row) }
     end
 end

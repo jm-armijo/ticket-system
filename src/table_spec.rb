@@ -6,6 +6,7 @@ describe Table do
         @path = '/this/is/a/path/to/a/test_table.json'
         allow(File).to receive(:file?).and_return(true)
         allow(YAML).to receive(:load_file).and_return([])
+        allow(Row).to receive(:new).and_return(double)
     end
 
     it 'should raise error if initialized with empty file path' do
@@ -53,5 +54,15 @@ describe Table do
 
         table = Table.new(@path)
         expect(table.rows.length).to eq(2)
+    end
+
+    it 'should create one row per entry in the file' do
+        row1 = { key1: 'value1', key2: 'value2' }
+        row2 = { key3: 'value3', key4: 'value4' }
+        allow(YAML).to receive(:load_file).and_return([row1, row2])
+
+        expect(Row).to receive(:new).with(row1)
+        expect(Row).to receive(:new).with(row2)
+        Table.new(@path)
     end
 end
