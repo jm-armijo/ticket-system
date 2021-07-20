@@ -1,0 +1,71 @@
+AllCops:
+  NewCops: enable
+
+# Configuration parameters: IndentationWidth.
+# SupportedStyles: outdent, indent
+Layout/AccessModifierIndentation:
+  EnforcedStyle: outdent
+
+Layout/HashAlignment:
+  EnforcedColonStyle: table
+  EnforcedHashRocketStyle: table
+
+# Cop supports --auto-correct.
+# Configuration parameters: Width, IgnoredPatterns.
+Layout/IndentationWidth:
+  Width: 4
+
+Metrics/MethodLength:
+  CountAsOne: ['array', 'hash']
+
+Metrics/ClassLength:
+  CountAsOne: ['array', 'hash']
+
+# Cop supports --auto-correct.
+# Configuration parameters: EnforcedStyle.
+# SupportedStyles: separated, grouped
+Style/AccessorGrouping:
+  EnforcedStyle: separated
+
+Style/ConditionalAssignment:
+  EnforcedStyle: assign_inside_condition
+  IncludeTernaryExpressions: false
+
+# Offense count: 2
+Style/Documentation:
+  Enabled: false
+
+# Cop supports --auto-correct.
+# Configuration parameters: EnforcedStyle.
+# SupportedStyles: always, always_true, never
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+# Configuration parameters: MinBodyLength.
+Style/GuardClause:
+  Enabled: false
+
+Style/MissingRespondToMissing:
+  Enabled: false
+
+Style/NegatedIf:
+  Enabled: false
+
+Style/NegatedWhile:
+  Enabled: false
+
+Style/OptionalBooleanParameter:
+  AllowedMethods: ['respond_to?']
+
+Style/RedundantReturn:
+  Enabled: false
+
+# Cop supports --auto-correct.
+# Configuration parameters: EnforcedStyle, AllowInnerSlashes.
+# SupportedStyles: slashes, percent_r, mixed
+Style/RegexpLiteral:
+  EnforcedStyle: mixed
+  AllowInnerSlashes: true
+
+Style/WordArray:
+  EnforcedStyle: brackets
