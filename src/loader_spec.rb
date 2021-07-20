@@ -26,4 +26,9 @@ describe Loader do
         expect(@mock_db).to receive(:add_table).with(@mock_table)
         loader.load_file(@path)
     end
+
+    it 'should give access to the database' do
+        loader = Loader.new
+        expect(loader.db).to equal(@mock_db)
+    end
 end
