@@ -5,7 +5,8 @@ class DB
         @tables = {}
     end
 
-    def add_table(table)
+    def load_table_file(path)
+        table = Table.new(path)
         @tables[table.name] = table
         @tables.transform_keys!(&:to_sym)
     end
