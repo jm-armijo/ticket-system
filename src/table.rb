@@ -13,6 +13,16 @@ class Table
         load_rows(path)
     end
 
+    def select(condition)
+        return @rows if condition.nil? || condition == ''
+
+        # rubocop:disable Lint/UnusedBlockArgument
+        # rubocop:disable Security/Eval
+        @rows.select { |t| eval(condition) }
+        # rubocop:enable Security/Eval
+        # rubocop:enable Lint/UnusedBlockArgument
+    end
+
 private
 
     def validate_path(path)

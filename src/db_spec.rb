@@ -43,42 +43,72 @@ describe DB do
         expect(db.instance_variable_get(:@tables).size).to be(2)
     end
 
-    it 'should access the overrider table' do
-        mock_table1 = double
-        mock_table2 = double
-        mock_new_table2 = double
-        allow(mock_table1).to receive(:name).and_return('table1')
-        allow(mock_table2).to receive(:name).and_return('table2')
-        allow(mock_new_table2).to receive(:name).and_return('table2')
+    it 'should execute select all query' do
+        mock_table = double
+        allow(mock_table).to receive(:select).and_return([])
 
+        query = 'select from table1'
         db = DB.new
-        db.add_table(mock_table1)
-        db.add_table(mock_table2)
-        db.add_table(mock_new_table2)
-        expect(db.table2).to equal(mock_new_table2)
+        db.instance_variable_set(:@tables, { table1: mock_table })
+
+        expect(mock_table).to receive(:select).with(nil)
+        db.execute(query)
     end
 
-    it 'should give access to the first table whem 2 added' do
-        mock_table1 = double
-        mock_table2 = double
-        allow(mock_table1).to receive(:name).and_return('table1')
-        allow(mock_table2).to receive(:name).and_return('table2')
+    it 'should execute conditional select query' do
+        mock_table = double
+        allow(mock_table).to receive(:select).and_return([])
+
+        condition = 't.condition > 1'
+        query = "select from table1 where #{condition}"
 
         db = DB.new
-        db.add_table(mock_table1)
-        db.add_table(mock_table2)
-        expect(db.table1).to equal(mock_table1)
+        db.instance_variable_set(:@tables, { table1: mock_table })
+
+        expect(mock_table).to receive(:select).with(condition)
+        db.execute(query)
     end
 
-    it 'should give access to the last table whem 2 added' do
-        mock_table1 = double
-        mock_table2 = double
-        allow(mock_table1).to receive(:name).and_return('table1')
-        allow(mock_table2).to receive(:name).and_return('table2')
+    it 'should not execute invalid query' do
+        mock_table = double
+        allow(mock_table).to receive(:select).and_return([])
+
+        query = 'select from table1 please'
+        db = DB.new
+        db.instance_variable_set(:@tables, { table1: mock_table })
+
+        expect(mock_table).not_to receive(:select)
+        expect { db.execute(query) }.to output("Error: Invalid command `#{query}`.\n").to_stderr_from_any_process
+    end
+
+    it 'should remove queries additional queries and execute first' do
+        mock_table = double
+        allow(mock_table).to receive(:select).and_return([])
+
+        hack = 'system("date")'
+        condition = 't.condition > 1'
+        query = "select from table1 where #{condition}; #{hack}"
 
         db = DB.new
-        db.add_table(mock_table1)
-        db.add_table(mock_table2)
-        expect(db.table2).to equal(mock_table2)
+        db.instance_variable_set(:@tables, { table1: mock_table })
+
+        expect(mock_table).to receive(:select).with(condition)
+        expect(mock_table).not_to receive(:select)
+        db.execute(query)
+    end
+
+    it 'should remove queries after the first and not execute invalid command' do
+        mock_table = double
+        allow(mock_table).to receive(:select).and_return([])
+
+        hack = 'system("date")'
+        condition = 't.condition > 1'
+        query = "#{hack} ; select from table1 where #{condition}"
+
+        db = DB.new
+        db.instance_variable_set(:@tables, { table1: mock_table })
+
+        expect(mock_table).not_to receive(:select)
+        expect { db.execute(query) }.to output("Error: Invalid command `#{hack}`.\n").to_stderr_from_any_process
     end
 end
