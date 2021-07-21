@@ -1,3 +1,5 @@
+require_relative './nil_object'
+
 class Row
     def initialize(data)
         @data = data
@@ -7,7 +9,7 @@ class Row
 private
 
     def method_missing(name)
-        raise "Invalid column name #{name}" if !respond_to_missing?(name)
+        return NilObject.new if !respond_to_missing?(name)
 
         return @data[name.to_sym]
     end

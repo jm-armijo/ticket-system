@@ -89,6 +89,20 @@ describe Table do
             allow(@mock_row5).to receive(:text_field).and_return('FIFTH')
             allow(@mock_row6).to receive(:text_field).and_return('6')
 
+            mock_nil = double
+            allow(mock_nil).to receive(:==).and_return(false)
+            allow(mock_nil).to receive(:!=).and_return(false)
+            allow(mock_nil).to receive(:>).and_return(false)
+            allow(mock_nil).to receive(:length).and_return(mock_nil)
+            allow(mock_nil).to receive(:nil?).and_return(true)
+
+            allow(@mock_row1).to receive(:text_field2).and_return('This is a text')
+            allow(@mock_row2).to receive(:text_field2).and_return(mock_nil)
+            allow(@mock_row3).to receive(:text_field2).and_return(mock_nil)
+            allow(@mock_row4).to receive(:text_field2).and_return(mock_nil)
+            allow(@mock_row5).to receive(:text_field2).and_return(mock_nil)
+            allow(@mock_row6).to receive(:text_field2).and_return(mock_nil)
+
             @all_rows = [@mock_row1, @mock_row2, @mock_row3, @mock_row4, @mock_row5, @mock_row6]
             @table = Table.new(@path)
             @table.instance_variable_set(:@rows, @all_rows)
@@ -124,6 +138,18 @@ describe Table do
 
         it 'should return rows 1,3 when filtering by numeric fields < 3 and text fields with length < 6' do
             expect(@table.select('t.numeric_field < 3 and t.text_field.length < 6')).to eq([@mock_row1, @mock_row3])
+        end
+
+        it 'should return row 1 when filtering by text field 2 value not empty' do
+            expect(@table.select('t.text_field2 != ""')).to eq([@mock_row1])
+        end
+
+        it 'should return row 1 when filtering by text field 2 matching value' do
+            expect(@table.select('t.text_field2 == "This is a text"')).to eq([@mock_row1])
+        end
+
+        it 'should return row 1 when filtering by text field 2 with length > 2' do
+            expect(@table.select('t.text_field2.length > 2')).to eq([@mock_row1])
         end
     end
 end
