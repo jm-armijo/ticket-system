@@ -149,4 +149,69 @@ describe DB do
         expect(@mock_table1).not_to receive(:select)
         expect { db.execute(query) }.to output("Error: Invalid command `#{hack}`.\n").to_stderr_from_any_process
     end
+
+    it 'should get result when executing query' do
+        row = double
+        allow(@mock_table1).to receive(:select).and_return([row])
+        allow(@mock_table1).to receive(:foreign_keys).and_return([])
+
+        condition = 't.condition > 1'
+        query = "select from table1 where #{condition}"
+
+        db = DB.new
+        db.instance_variable_set(:@tables, { table1: @mock_table1 })
+
+        results = db.execute(query)
+        expect(results.first.parent).to be(row)
+    end
+
+    it 'should get foreign key result when executing query' do
+        row = double
+        allow(row).to receive(:fk_id).and_return(3)
+        foreign_key = { table: 'table2', key: 'fk_id' }
+
+        allow(@mock_table1).to receive(:select).and_return([row])
+        allow(@mock_table1).to receive(:foreign_keys).and_return([foreign_key])
+
+        mock_foreign_value = double
+        allow(@mock_table2).to receive(:select_by_id).with(3).and_return(mock_foreign_value)
+
+        condition = 't.condition > 1'
+        query = "select from table1 where #{condition}"
+
+        db = DB.new
+        db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
+
+        results = db.execute(query)
+        expect(results.first.children[:table2]).to be(mock_foreign_value)
+    end
+
+    it 'should get multiple foreign key results when multiple foreign keys exist' do
+        row = double
+        allow(row).to receive(:fk_id2).and_return(3)
+        allow(row).to receive(:fk_id3).and_return('a_key')
+
+        foreign_key1 = { table: 'table2', key: 'fk_id2' }
+        foreign_key2 = { table: 'table3', key: 'fk_id3' }
+
+        allow(@mock_table1).to receive(:select).and_return([row])
+        allow(@mock_table1).to receive(:foreign_keys).and_return([foreign_key1, foreign_key2])
+
+        mock_foreign_value2 = double
+        allow(@mock_table2).to receive(:select_by_id).with(3).and_return(mock_foreign_value2)
+
+        mock_foreign_value3 = double
+        @mock_table3 = double
+        allow(@mock_table3).to receive(:name).and_return('table3')
+        allow(@mock_table3).to receive(:select_by_id).with('a_key').and_return(mock_foreign_value3)
+
+        condition = 't.condition > 1'
+        query = "select from table1 where #{condition}"
+
+        db = DB.new
+        db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2, table3: @mock_table3 })
+
+        results = db.execute(query)
+        expect(results.first.children).to eq({ table2: mock_foreign_value2, table3: mock_foreign_value3 })
+    end
 end

@@ -26,6 +26,10 @@ class Table
         # rubocop:enable Lint/UnusedBlockArgument
     end
 
+    def select_by_id(id)
+        return select("t._id == #{id}")
+    end
+
 private
 
     def parse_foreign_keys(foreign_keys)
@@ -39,8 +43,9 @@ private
         }
 
         JSON::Validator.validate!(schema, foreign_keys, list: true, strict: true)
+        parsed_keys = JSON.parse(foreign_keys)
 
-        return JSON.parse(foreign_keys)
+        return parsed_keys.map { |key| key.transform_keys(&:to_sym) }
     end
 
     def validate_path(path)

@@ -32,8 +32,39 @@ private
         end
     end
 
+    class Result
+        attr_reader :parent
+        attr_reader :children
+
+        def initialize(parent)
+            @parent = parent
+            @children = {}
+        end
+
+        def add_child(table, child)
+            @children[table.to_sym] = child
+        end
+    end
+
     def select_from_table(table_name, conditions)
         table = @tables[table_name.to_sym]
-        return table.select(conditions)
+        rows = table.select(conditions)
+        return rows.map { |row| create_result(table, row) }
+    end
+
+    def create_result(table, row)
+        result = Result.new(row)
+
+        table.foreign_keys.each do |fk|
+            foreign_child = get_foreign_child(row, fk)
+            result.add_child(fk[:table], foreign_child) if !foreign_child.nil?
+        end
+
+        return result
+    end
+
+    def get_foreign_child(row, foreign_key)
+        id = row.send(foreign_key[:key])
+        return @tables[foreign_key[:table].to_sym].select_by_id(id)
     end
 end

@@ -56,7 +56,7 @@ describe Table do
     it 'should save foreign keys when valid' do
         @foreign_keys = '[{"table": "t", "key": "k"}]'
         table = Table.new(@path, @foreign_keys)
-        table.foreign_keys =~ [{ table: 't', key: 'k' }]
+        expect(table.foreign_keys).to eq([{ table: 't', key: 'k' }])
     end
 
     it 'should allow getting its name after successfull initialization' do
@@ -183,5 +183,21 @@ describe Table do
         it 'should return row 1 when filtering by text field 2 with length > 2' do
             expect(@table.select('t.text_field2.length > 2')).to eq([@mock_row1])
         end
+    end
+
+    it 'should return call select when calling select_by_id with numeric id' do
+        table = Table.new(@path, @foreign_keys)
+        allow(table).to receive(:select)
+
+        expect(table).to receive(:select).with('t._id == 3')
+        table.select_by_id(3)
+    end
+
+    it 'should return call select when calling select_by_id with text id' do
+        table = Table.new(@path, @foreign_keys)
+        allow(table).to receive(:select)
+
+        expect(table).to receive(:select).with('t._id == "XYZ"')
+        table.select_by_id('"XYZ"')
     end
 end
