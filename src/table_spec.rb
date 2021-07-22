@@ -4,36 +4,68 @@ require_relative './table'
 describe Table do
     before(:each) do
         @path = '/this/is/a/path/to/a/test_table.json'
+        @foreign_keys = '[]'
         allow(File).to receive(:file?).and_return(true)
         allow(YAML).to receive(:load_file).and_return([])
         allow(Row).to receive(:new).and_return(double)
     end
 
     it 'should raise error if initialized with empty file path' do
-        expect { Table.new('') }.to raise_error(RuntimeError, 'Path cannot be empty')
+        expect { Table.new('', @foreign_keys) }.to raise_error(RuntimeError, 'Path cannot be empty')
     end
 
     it 'should raise error if initialized with empty file path' do
-        expect { Table.new(nil) }.to raise_error(RuntimeError, 'Path cannot be nil')
+        expect { Table.new(nil, @foreign_keys) }.to raise_error(RuntimeError, 'Path cannot be nil')
     end
 
-    it 'should raise error when path is valid' do
+    it 'should raise error when path is invalid' do
         allow(File).to receive(:file?).and_return(false)
 
-        expect { Table.new(@path) }.to raise_error(RuntimeError, "Invalid path #{@path}")
+        expect { Table.new(@path, @foreign_keys) }.to raise_error(RuntimeError, "Invalid path #{@path}")
     end
 
     it 'should create table when path is valid' do
-        expect { Table.new(@path) }.not_to raise_error
+        expect { Table.new(@path, @foreign_keys) }.not_to raise_error
+    end
+
+    it 'should raise error when foreign keys format is invalid' do
+        @foreign_keys = '[xxxxx]'
+        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
+    end
+
+    it 'should raise error when foreign keys is not a JSON array' do
+        @foreign_keys = '{"key": "value"}'
+        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
+    end
+
+    it 'should raise error when foreign keys do not have the "table" field' do
+        @foreign_keys = '[{"key": "value"}]'
+        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
+    end
+
+    it 'should raise error when foreign keys do not have the "key" field' do
+        @foreign_keys = '[{"table": "value"}]'
+        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
+    end
+
+    it 'should raise error when foreign keys include unexpected field' do
+        @foreign_keys = '[{"table": "t", "key": "k", "fake": "f"}]'
+        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
+    end
+
+    it 'should save foreign keys when valid' do
+        @foreign_keys = '[{"table": "t", "key": "k"}]'
+        table = Table.new(@path, @foreign_keys)
+        table.foreign_keys =~ [{ table: 't', key: 'k' }]
     end
 
     it 'should allow getting its name after successfull initialization' do
-        table = Table.new(@path)
+        table = Table.new(@path, @foreign_keys)
         expect(table.name).to eq('test_table')
     end
 
     it 'should have 0 rows when loading empty file' do
-        table = Table.new(@path)
+        table = Table.new(@path, @foreign_keys)
         expect(table.rows.length).to eq(0)
     end
 
@@ -41,7 +73,7 @@ describe Table do
         content = [{ key1: 'value1', key2: 'value2' }]
         allow(YAML).to receive(:load_file).and_return(content)
 
-        table = Table.new(@path)
+        table = Table.new(@path, @foreign_keys)
         expect(table.rows.length).to eq(1)
     end
 
@@ -52,7 +84,7 @@ describe Table do
         ]
         allow(YAML).to receive(:load_file).and_return(content)
 
-        table = Table.new(@path)
+        table = Table.new(@path, @foreign_keys)
         expect(table.rows.length).to eq(2)
     end
 
@@ -63,7 +95,7 @@ describe Table do
 
         expect(Row).to receive(:new).with(row1)
         expect(Row).to receive(:new).with(row2)
-        Table.new(@path)
+        Table.new(@path, @foreign_keys)
     end
 
     context 'when processing a query' do
@@ -104,7 +136,7 @@ describe Table do
             allow(@mock_row6).to receive(:text_field2).and_return(mock_nil)
 
             @all_rows = [@mock_row1, @mock_row2, @mock_row3, @mock_row4, @mock_row5, @mock_row6]
-            @table = Table.new(@path)
+            @table = Table.new(@path, @foreign_keys)
             @table.instance_variable_set(:@rows, @all_rows)
         end
 

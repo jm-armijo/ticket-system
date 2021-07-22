@@ -6,12 +6,13 @@ describe DB do
         @path1 = 'this/is/a/path/to/table1.json'
         @path2 = 'this/is/a/path/to/table2.json'
 
+        @foreign_keys1 = '[]'
+        @foreign_keys2 = '[]'
+
         @mock_table1 = double
         @mock_table2 = double
         allow(@mock_table1).to receive(:name).and_return('table1')
         allow(@mock_table2).to receive(:name).and_return('table2')
-
-        # allow(Table).to receive(:new).and_return(@mock_table2)
     end
 
     it 'should have 0 tables after initialization' do
@@ -22,14 +23,14 @@ describe DB do
     it 'should create a table when loading a table file' do
         db = DB.new
 
-        expect(Table).to receive(:new).and_return(@mock_table1)
+        expect(Table).to receive(:new).with(@path1, @foreign_keys1).and_return(@mock_table1)
         db.load_table_file(@path1)
     end
 
     it 'should have 1 tables after inserting a table' do
         db = DB.new
 
-        allow(Table).to receive(:new).and_return(@mock_table1)
+        allow(Table).to receive(:new).with(@path1, @foreign_keys1).and_return(@mock_table1)
         db.load_table_file(@path1)
 
         expect(db.instance_variable_get(:@tables).size).to be(1)
@@ -38,7 +39,7 @@ describe DB do
     it 'should store table by name after loading the file' do
         db = DB.new
 
-        allow(Table).to receive(:new).and_return(@mock_table1)
+        allow(Table).to receive(:new).with(@path1, @foreign_keys1).and_return(@mock_table1)
         db.load_table_file(@path1)
 
         expect(db.instance_variable_get(:@tables).fetch(:table1)).to be(@mock_table1)
@@ -47,10 +48,10 @@ describe DB do
     it 'should have 2 tables after inserting 2 tables' do
         db = DB.new
 
-        allow(Table).to receive(:new).and_return(@mock_table1)
+        allow(Table).to receive(:new).with(@path1, @foreign_keys1).and_return(@mock_table1)
         db.load_table_file(@path1)
 
-        allow(Table).to receive(:new).and_return(@mock_table2)
+        allow(Table).to receive(:new).with(@path2, @foreign_keys2).and_return(@mock_table2)
         db.load_table_file(@path2)
 
         expect(db.instance_variable_get(:@tables).size).to be(2)
@@ -59,10 +60,10 @@ describe DB do
     it 'should store tables by name after loading the files' do
         db = DB.new
 
-        allow(Table).to receive(:new).and_return(@mock_table1)
+        allow(Table).to receive(:new).with(@path1, @foreign_keys1).and_return(@mock_table1)
         db.load_table_file(@path1)
 
-        allow(Table).to receive(:new).and_return(@mock_table2)
+        allow(Table).to receive(:new).with(@path2, @foreign_keys2).and_return(@mock_table2)
         db.load_table_file(@path2)
 
         expect(db.instance_variable_get(:@tables).keys).to eq(%i[table1 table2])
@@ -74,13 +75,13 @@ describe DB do
 
         db = DB.new
 
-        allow(Table).to receive(:new).and_return(@mock_table1)
+        allow(Table).to receive(:new).with(@path1, @foreign_keys1).and_return(@mock_table1)
         db.load_table_file(@path1)
 
-        allow(Table).to receive(:new).and_return(@mock_table2)
+        allow(Table).to receive(:new).with(@path2, @foreign_keys2).and_return(@mock_table2)
         db.load_table_file(@path2)
 
-        allow(Table).to receive(:new).and_return(mock_new_table2)
+        allow(Table).to receive(:new).with(@path2, @foreign_keys2).and_return(mock_new_table2)
         db.load_table_file(@path2)
 
         expect(db.instance_variable_get(:@tables).size).to be(2)

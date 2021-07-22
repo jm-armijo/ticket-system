@@ -5,10 +5,10 @@ class DB
         @tables = {}
     end
 
-    def load_table_file(path)
-        table = Table.new(path)
-        @tables[table.name] = table
-        @tables.transform_keys!(&:to_sym)
+    def load_table_file(path, foreign_keys = '[]')
+        table = Table.new(path, foreign_keys)
+        @tables[table.name.to_sym] = table
+        return table
     end
 
     def execute(query)
