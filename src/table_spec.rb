@@ -4,7 +4,7 @@ require_relative './table'
 describe Table do
     before(:each) do
         @path = '/this/is/a/path/to/a/test_table.json'
-        @foreign_keys = '[]'
+        @foreign_keys = double
         allow(File).to receive(:file?).and_return(true)
         allow(YAML).to receive(:load_file).and_return([])
         allow(Row).to receive(:new).and_return(double)
@@ -28,35 +28,9 @@ describe Table do
         expect { Table.new(@path, @foreign_keys) }.not_to raise_error
     end
 
-    it 'should raise error when foreign keys format is invalid' do
-        @foreign_keys = '[xxxxx]'
-        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
-    end
-
-    it 'should raise error when foreign keys is not a JSON array' do
-        @foreign_keys = '{"key": "value"}'
-        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
-    end
-
-    it 'should raise error when foreign keys do not have the "table" field' do
-        @foreign_keys = '[{"key": "value"}]'
-        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
-    end
-
-    it 'should raise error when foreign keys do not have the "key" field' do
-        @foreign_keys = '[{"table": "value"}]'
-        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
-    end
-
-    it 'should raise error when foreign keys include unexpected field' do
-        @foreign_keys = '[{"table": "t", "key": "k", "fake": "f"}]'
-        expect { Table.new(@path, @foreign_keys) }.to raise_error(JSON::Schema::ValidationError)
-    end
-
     it 'should save foreign keys when valid' do
-        @foreign_keys = '[{"table": "t", "key": "k"}]'
         table = Table.new(@path, @foreign_keys)
-        expect(table.foreign_keys).to eq([{ table: 't', key: 'k' }])
+        expect(table.foreign_keys).to equal(@foreign_keys)
     end
 
     it 'should allow getting its name after successfull initialization' do

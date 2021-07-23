@@ -1,3 +1,4 @@
+require_relative './foreign_keys'
 require_relative './table'
 
 class DB
@@ -5,10 +6,8 @@ class DB
         @tables = {}
     end
 
-    def load_table_file(path, foreign_keys = '[]')
-        table = Table.new(path, foreign_keys)
-        @tables[table.name.to_sym] = table
-        return table
+    def load_table_file(path, foreign_keys = ForeignKeys.new)
+        table = create_table(path, foreign_keys)
     end
 
     def execute(query)
@@ -18,6 +17,12 @@ class DB
     end
 
 private
+
+    def create_table(path, foreign_keys)
+        table = Table.new(path, foreign_keys)
+        @tables[table.name.to_sym] = table
+        return table
+    end
 
     def remove_extra_commands(query)
         return query.split(';').first.strip
@@ -55,16 +60,16 @@ private
     def create_result(table, row)
         result = Result.new(row)
 
-        table.foreign_keys.each do |fk|
-            foreign_child = get_foreign_child(row, fk)
-            result.add_child(fk[:table], foreign_child) if !foreign_child.nil?
+        table.foreign_keys.each do |table_name, key|
+            foreign_child = get_foreign_child(row, table_name, key)
+            result.add_child(table_name, foreign_child) if !foreign_child.nil?
         end
 
         return result
     end
 
-    def get_foreign_child(row, foreign_key)
-        id = row.send(foreign_key[:key])
-        return @tables[foreign_key[:table].to_sym].select_by_id(id)
+    def get_foreign_child(row, table_name, key)
+        id = row.send(key)
+        return @tables[table_name.to_sym].select_by_id(id)
     end
 end

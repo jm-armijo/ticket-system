@@ -1,5 +1,4 @@
 require 'yaml'
-require 'json-schema'
 require_relative './row'
 
 class Table
@@ -9,7 +8,8 @@ class Table
 
     def initialize(path, foreign_keys)
         @rows = []
-        @foreign_keys = parse_foreign_keys(foreign_keys)
+        @foreign_keys = foreign_keys
+        @references = []
 
         validate_path(path)
         save_name(path)
@@ -31,22 +31,6 @@ class Table
     end
 
 private
-
-    def parse_foreign_keys(foreign_keys)
-        schema = {
-            'type'       => 'object',
-            'required'   => ['table', 'key'],
-            'properties' => {
-                'table' => { 'type' => 'string' },
-                'key'   => { 'type' => 'string' }
-            }
-        }
-
-        JSON::Validator.validate!(schema, foreign_keys, list: true, strict: true)
-        parsed_keys = JSON.parse(foreign_keys)
-
-        return parsed_keys.map { |key| key.transform_keys(&:to_sym) }
-    end
 
     def validate_path(path)
         raise 'Path cannot be empty' if path == ''
