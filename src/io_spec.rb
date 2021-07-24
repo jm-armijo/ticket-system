@@ -20,19 +20,38 @@ describe IOInterface do
     end
 
     it 'should print a quit message if given' do
-        allow_any_instance_of(Kernel).to receive(:puts)
         io = IOInterface.new
 
         message = 'See you later, alligator'
-        expect_any_instance_of(Kernel).to receive(:puts).with(message)
+        expect { io.quit(message) }.to output("#{message}\n").to_stdout_from_any_process
         io.quit(message)
     end
 
     it 'should not print a quit message when none given' do
-        allow_any_instance_of(Kernel).to receive(:puts)
         io = IOInterface.new
 
         expect_any_instance_of(Kernel).not_to receive(:puts)
         io.quit
+    end
+
+    it 'should build and print Terminal::Table objects' do
+        parent = {headers: double, values: [double]}
+        children = {table1: { headers: double, values: [double] }}
+        result = double
+        allow(result).to receive(:parent).and_return(parent)
+        allow(result).to receive(:children).and_return(children)
+
+        mock_terminal = double
+        allow(mock_terminal).to receive(:title=)
+        allow(mock_terminal).to receive(:headings=)
+        allow(mock_terminal).to receive(:rows=)
+        allow(mock_terminal).to receive(:style=)
+        allow(Terminal::Table).to receive(:new).and_return(mock_terminal)
+
+        allow(Kernel).to receive(:puts).and_return(nil)
+
+        io = IOInterface.new
+        expect(Kernel).to receive(:puts).with(mock_terminal).twice
+        io.show_results(:table1, [result])
     end
 end

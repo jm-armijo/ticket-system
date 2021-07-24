@@ -10,6 +10,10 @@ class Row
         return _id
     end
 
+    def headers
+        return @data.keys
+    end
+
 private
 
     def method_missing(name)

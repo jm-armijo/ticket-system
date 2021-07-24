@@ -76,6 +76,7 @@ describe UserInterface do
         before(:each) do
             allow(@db).to receive(:execute)
             allow(@io).to receive(:show_results)
+            allow(@query).to receive(:table).and_return('table1')
         end
 
         it 'should execute query when input is valid' do

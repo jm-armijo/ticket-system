@@ -39,7 +39,7 @@ private
         query = Query.new(query_string)
         if query.valid?
             results = @db.execute(query)
-            @io.show_results(results)
+            @io.show_results(query.table, results)
         end
     end
 end
