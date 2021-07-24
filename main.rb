@@ -16,6 +16,8 @@ class Main
 
     def run
         while @ui.run; end
+    rescue StandardError => e
+        raise "Undefined error: #{e}.\n\nExiting now."
     end
 
 private

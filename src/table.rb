@@ -20,15 +20,13 @@ class Table
     def select(condition)
         return @rows if condition.nil? || condition == ''
 
-        # rubocop:disable Lint/UnusedBlockArgument
         # rubocop:disable Security/Eval
-        @rows.select { |t| eval(condition) }
+        @rows.select { |t| t.instance_eval { eval(condition) } }
         # rubocop:enable Security/Eval
-        # rubocop:enable Lint/UnusedBlockArgument
     end
 
     def select_by_id(id)
-        return select("t._id == #{id}")
+        return select("_id == #{id}")
     end
 
 private

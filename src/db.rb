@@ -47,7 +47,7 @@ private
 
         combined_keys(table).each do |keys|
             value = row.send(keys[:my_key])
-            child = @tables[keys[:table]].select("t.#{keys[:other_key]} == #{value}")
+            child = @tables[keys[:table]].select("#{keys[:other_key]} == #{value}")
             result.add_child(table.name, child) if !child.nil?
         end
 

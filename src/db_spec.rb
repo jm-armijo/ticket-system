@@ -153,6 +153,12 @@ describe DB do
         end
 
         it 'should get result when executing query' do
+            parent = double
+            mock_result = double
+            allow(mock_result).to receive(:add_child)
+            allow(mock_result).to receive(:parent).and_return(parent)
+            allow(Result).to receive(:new).and_return(mock_result)
+
             allow(@mock_table1).to receive(:select).and_return([@row])
             allow(@mock_table1).to receive(:foreign_keys).and_return([])
 
@@ -160,7 +166,7 @@ describe DB do
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
 
             results = db.execute(@query_with_conditions)
-            expect(results.first.parent).to be(@row)
+            expect(results.first.parent).to be(parent)
         end
 
         it 'should add foreign key child when executing query' do

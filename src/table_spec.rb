@@ -124,39 +124,39 @@ describe Table do
         end
 
         it 'should return rows 1,2,3 when filtering by numeric fields < 3' do
-            expect(@table.select('t.numeric_field < 3')).to eq([@mock_row1, @mock_row2, @mock_row3])
+            expect(@table.select('numeric_field < 3')).to eq([@mock_row1, @mock_row2, @mock_row3])
         end
 
         it 'should return rows 4,5,6 when filtering by numeric fields >= 3' do
-            expect(@table.select('t.numeric_field >= 3')).to eq([@mock_row4, @mock_row5, @mock_row6])
+            expect(@table.select('numeric_field >= 3')).to eq([@mock_row4, @mock_row5, @mock_row6])
         end
 
         it 'should return no rows when filtering by numeric fields == 3' do
-            expect(@table.select('t.numeric_field == 3')).to eq([])
+            expect(@table.select('numeric_field == 3')).to eq([])
         end
 
         it 'should return rows 1,3,5,6 when filtering by text fields with length < 6' do
-            expect(@table.select('t.text_field.length < 6')).to eq([@mock_row1, @mock_row3, @mock_row5, @mock_row6])
+            expect(@table.select('text_field.length < 6')).to eq([@mock_row1, @mock_row3, @mock_row5, @mock_row6])
         end
 
         it 'should return rows 1,3,5,6 when filtering by text fields having letter "o"' do
-            expect(@table.select('t.text_field.match? /o/')).to eq([@mock_row2, @mock_row4])
+            expect(@table.select('text_field.match? /o/')).to eq([@mock_row2, @mock_row4])
         end
 
         it 'should return rows 1,3 when filtering by numeric fields < 3 and text fields with length < 6' do
-            expect(@table.select('t.numeric_field < 3 and t.text_field.length < 6')).to eq([@mock_row1, @mock_row3])
+            expect(@table.select('numeric_field < 3 and text_field.length < 6')).to eq([@mock_row1, @mock_row3])
         end
 
         it 'should return row 1 when filtering by text field 2 value not empty' do
-            expect(@table.select('t.text_field2 != ""')).to eq([@mock_row1])
+            expect(@table.select('text_field2 != ""')).to eq([@mock_row1])
         end
 
         it 'should return row 1 when filtering by text field 2 matching value' do
-            expect(@table.select('t.text_field2 == "This is a text"')).to eq([@mock_row1])
+            expect(@table.select('text_field2 == "This is a text"')).to eq([@mock_row1])
         end
 
         it 'should return row 1 when filtering by text field 2 with length > 2' do
-            expect(@table.select('t.text_field2.length > 2')).to eq([@mock_row1])
+            expect(@table.select('text_field2.length > 2')).to eq([@mock_row1])
         end
     end
 
@@ -165,7 +165,7 @@ describe Table do
             table = Table.new(@path, @foreign_keys)
             allow(table).to receive(:select)
 
-            expect(table).to receive(:select).with('t._id == 3')
+            expect(table).to receive(:select).with('_id == 3')
             table.select_by_id(3)
         end
 
@@ -173,7 +173,7 @@ describe Table do
             table = Table.new(@path, @foreign_keys)
             allow(table).to receive(:select)
 
-            expect(table).to receive(:select).with('t._id == "XYZ"')
+            expect(table).to receive(:select).with('_id == "XYZ"')
             table.select_by_id('"XYZ"')
         end
     end

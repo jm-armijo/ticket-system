@@ -2,12 +2,13 @@ require 'terminal-table'
 
 class IOInterface
     def read_input
-        puts '>> '
-        return gets.strip
+        print '>> '
+        input = gets
+        return input.nil? || input < "\21" ? input : input.strip
     end
 
     def quit(message = nil)
-        Kernel.puts message if !message.nil?
+        Kernel.puts "\n#{message}" if !message.nil?
     end
 
     def show_results(name, results)
@@ -30,6 +31,7 @@ private
         table.style    = { all_separators: true, border: :unicode_round }
 
         Kernel.puts table
+        print "\n"
     end
 
     def show_separator

@@ -6,7 +6,7 @@ describe IOInterface do
         io = IOInterface.new
 
         input = nil
-        expect { input = io.read_input }.to output(">> \n").to_stdout_from_any_process
+        expect { input = io.read_input }.to output(">> ").to_stdout_from_any_process
         expect(input).to eq('user input')
     end
 
@@ -15,7 +15,7 @@ describe IOInterface do
         io = IOInterface.new
 
         input = nil
-        expect { input = io.read_input }.to output(">> \n").to_stdout_from_any_process
+        expect { input = io.read_input }.to output(">> ").to_stdout_from_any_process
         expect(input).to eq("user \ninput")
     end
 
@@ -23,7 +23,7 @@ describe IOInterface do
         io = IOInterface.new
 
         message = 'See you later, alligator'
-        expect { io.quit(message) }.to output("#{message}\n").to_stdout_from_any_process
+        expect { io.quit(message) }.to output("\n#{message}\n").to_stdout_from_any_process
         io.quit(message)
     end
 
@@ -35,8 +35,8 @@ describe IOInterface do
     end
 
     it 'should build and print Terminal::Table objects' do
-        parent = {headers: double, values: [double]}
-        children = {table1: { headers: double, values: [double] }}
+        parent = { headers: double, values: [double] }
+        children = { table1: { headers: double, values: [double] } }
         result = double
         allow(result).to receive(:parent).and_return(parent)
         allow(result).to receive(:children).and_return(children)

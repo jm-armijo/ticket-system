@@ -21,11 +21,11 @@ class UserInterface
 private
 
     def valid_command?(input)
-        return ['exit', 'quit'].include?(input)
+        return ['exit', 'quit', 'q'].include?(input)
     end
 
     def process_command(command)
-        return quit if ['exit', 'quit'].include?(command)
+        return quit if ['exit', 'quit', 'q'].include?(command)
 
         return false
     end
@@ -36,6 +36,8 @@ private
     end
 
     def process_query(query_string)
+        return if query_string.nil? || query_string < "\21"
+
         query = Query.new(query_string)
         if query.valid?
             results = @db.execute(query)
