@@ -126,72 +126,40 @@ describe DB do
             @mock_table3 = double
             allow(@mock_table3).to receive(:name).and_return('table3')
             allow(@mock_table3).to receive(:select_by_id).with('a_key').and_return(@mock_foreign_value3)
+
+            @query_with_conditions = double
+            allow(@query_with_conditions).to receive(:table).and_return(:table1)
+            allow(@query_with_conditions).to receive(:conditions).and_return('value > 1')
+
+            @query_without_conditions = double
+            allow(@query_without_conditions).to receive(:table).and_return(:table1)
+            allow(@query_without_conditions).to receive(:conditions).and_return(nil)
         end
 
         it 'should execute select all query' do
-            query = 'select from table1'
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
 
             expect(@mock_table1).to receive(:select).with(nil)
-            db.execute(query)
+            db.execute(@query_without_conditions)
         end
 
         it 'should execute conditional select query' do
-            condition = 't.condition > 1'
-            query = "select from table1 where #{condition}"
-
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
 
-            expect(@mock_table1).to receive(:select).with(condition)
-            db.execute(query)
-        end
-
-        it 'should not execute invalid query' do
-            query = 'select from table1 please'
-            db = DB.new
-            db.instance_variable_set(:@tables, { table1: @mock_table1 })
-
-            expect { db.execute(query) }.to output("Error: Invalid command `#{query}`.\n").to_stderr_from_any_process
-        end
-
-        it 'should remove additional queries and execute first' do
-            hack = 'system("date")'
-            condition = 't.condition > 1'
-            query = "select from table1 where #{condition}; #{hack}"
-
-            db = DB.new
-            db.instance_variable_set(:@tables, { table1: @mock_table1 })
-
-            expect(@mock_table1).to receive(:select).with(condition)
-            expect(@mock_table1).not_to receive(:select)
-            db.execute(query)
-        end
-
-        it 'should remove queries after the first and not execute invalid command' do
-            hack = 'system("date")'
-            condition = 't.condition > 1'
-            query = "#{hack} ; select from table1 where #{condition}"
-
-            db = DB.new
-            db.instance_variable_set(:@tables, { table1: @mock_table1 })
-
-            expect(@mock_table1).not_to receive(:select)
-            expect { db.execute(query) }.to output("Error: Invalid command `#{hack}`.\n").to_stderr_from_any_process
+            expect(@mock_table1).to receive(:select).with('value > 1')
+            db.execute(@query_with_conditions)
         end
 
         it 'should get result when executing query' do
             allow(@mock_table1).to receive(:select).and_return([@row])
             allow(@mock_table1).to receive(:foreign_keys).and_return([])
 
-            condition = 't.condition > 1'
-            query = "select from table1 where #{condition}"
-
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
 
-            results = db.execute(query)
+            results = db.execute(@query_with_conditions)
             expect(results.first.parent).to be(@row)
         end
 
@@ -204,14 +172,11 @@ describe DB do
             allow(@mock_table1).to receive(:select).and_return([@row])
             allow(@mock_table2).to receive(:select).and_return([@mock_foreign_value2])
 
-            condition = 't.condition > 1'
-            query = "select from table1 where #{condition}"
-
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
 
             expect(mock_result).to receive(:add_child).with(:table1, [@mock_foreign_value2])
-            db.execute(query)
+            db.execute(@query_with_conditions)
         end
 
         it 'should add backward foreign key child when executing query' do
@@ -220,9 +185,6 @@ describe DB do
             mock_result = double
             allow(mock_result).to receive(:add_child)
             allow(Result).to receive(:new).and_return(mock_result)
-
-            condition = 't.condition > 1'
-            query = "select from table1 where #{condition}"
 
             @backward_keys1 = double
             allow(@backward_keys1).to receive(:each).and_yield('table2', 'fk_id2')
@@ -238,7 +200,7 @@ describe DB do
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
 
             expect(mock_result).to receive(:add_child).with(:table1, [@mock_foreign_value2])
-            db.execute(query)
+            db.execute(@query_with_conditions)
         end
     end
 end
