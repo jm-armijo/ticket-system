@@ -55,8 +55,8 @@ private
     end
 
     def combined_keys(table)
-        keys1 = table.foreign_keys.map  { |t, k| { table: t, my_key: k, other_key: 'id' } }
-        keys2 = table.backward_keys.map { |t, k| { table: t, my_key: 'id', other_key: k } }
+        keys1 = table.foreign_keys.map  { |t, k| { table: t.to_sym, my_key: k, other_key: 'id' } }
+        keys2 = table.backward_keys.map { |t, k| { table: t.to_sym, my_key: 'id', other_key: k } }
 
         return keys1 + keys2
     end
