@@ -6,16 +6,20 @@ describe DB do
         @path1 = 'this/is/a/path/to/table1.json'
         @path2 = 'this/is/a/path/to/table2.json'
 
-        @foreign_keys_default = double
         @foreign_keys1 = double
         @foreign_keys2 = double
 
+        allow(@foreign_keys1).to receive(:get_backward_keys).and_return([])
+        allow(@foreign_keys2).to receive(:get_backward_keys).and_return([])
+
         @mock_table1 = double
         @mock_table2 = double
-        allow(@mock_table1).to receive(:name).and_return('table1')
-        allow(@mock_table2).to receive(:name).and_return('table2')
 
-        allow(ForeignKeys).to receive(:new).and_return(@foreign_keys_default)
+        allow(@mock_table1).to receive(:name).and_return(:table1)
+        allow(@mock_table2).to receive(:name).and_return(:table2)
+
+        allow(@mock_table1).to receive(:foreign_keys).and_return(@foreign_keys1)
+        allow(@mock_table2).to receive(:foreign_keys).and_return(@foreign_keys2)
     end
 
     it 'should have 0 tables after initialization' do
@@ -27,8 +31,8 @@ describe DB do
         it 'should create a table without foreign keys' do
             db = DB.new
 
-            expect(Table).to receive(:new).with(@path1, @foreign_keys_default).and_return(@mock_table1)
-            db.load_table_file(@path1)
+            expect(Table).to receive(:new).with(@path1, @foreign_keys1).and_return(@mock_table1)
+            db.load_table_file(@path1, @foreign_keys1)
         end
 
         it 'should create a table with foreign keys' do
@@ -42,7 +46,7 @@ describe DB do
             db = DB.new
 
             allow(Table).to receive(:new).and_return(@mock_table1)
-            db.load_table_file(@path1)
+            db.load_table_file(@path1, @foreign_keys1)
 
             expect(db.instance_variable_get(:@tables).size).to be(1)
         end
@@ -51,7 +55,7 @@ describe DB do
             db = DB.new
 
             allow(Table).to receive(:new).and_return(@mock_table1)
-            db.load_table_file(@path1)
+            db.load_table_file(@path1, @foreign_keys1)
 
             expect(db.instance_variable_get(:@tables).fetch(:table1)).to be(@mock_table1)
         end
@@ -60,10 +64,10 @@ describe DB do
             db = DB.new
 
             allow(Table).to receive(:new).and_return(@mock_table1)
-            db.load_table_file(@path1)
+            db.load_table_file(@path1, @foreign_keys1)
 
             allow(Table).to receive(:new).and_return(@mock_table2)
-            db.load_table_file(@path2)
+            db.load_table_file(@path2, @foreign_keys2)
 
             expect(db.instance_variable_get(:@tables).size).to be(2)
         end
@@ -72,37 +76,59 @@ describe DB do
             db = DB.new
 
             allow(Table).to receive(:new).and_return(@mock_table1)
-            db.load_table_file(@path1)
+            db.load_table_file(@path1, @foreign_keys1)
 
             allow(Table).to receive(:new).and_return(@mock_table2)
-            db.load_table_file(@path2)
+            db.load_table_file(@path2, @foreign_keys2)
 
             expect(db.instance_variable_get(:@tables).keys).to eq(%i[table1 table2])
         end
 
         it 'should have 2 tables after overriding a table' do
             mock_new_table2 = double
+            mock_foreign_keys2 = double
+            allow(mock_foreign_keys2).to receive(:get_backward_keys).and_return([])
             allow(mock_new_table2).to receive(:name).and_return('table2')
+            allow(mock_new_table2).to receive(:foreign_keys).and_return(mock_foreign_keys2)
 
             db = DB.new
 
             allow(Table).to receive(:new).and_return(@mock_table1)
-            db.load_table_file(@path1)
+            db.load_table_file(@path1, @foreign_keys1)
 
             allow(Table).to receive(:new).and_return(@mock_table2)
-            db.load_table_file(@path2)
+            db.load_table_file(@path2, @foreign_keys2)
 
             allow(Table).to receive(:new).and_return(mock_new_table2)
-            db.load_table_file(@path2)
+            db.load_table_file(@path2, @foreign_keys2)
 
             expect(db.instance_variable_get(:@tables).size).to be(2)
         end
     end
 
     context 'when calling execute' do
-        it 'should execute select all query' do
-            allow(@mock_table1).to receive(:select).and_return([])
+        before(:each) do
+            @row = double
+            allow(@row).to receive(:fk_id2).and_return(3)
+            allow(@row).to receive(:fk_id3).and_return('a_key')
 
+            @foreign_keys1 = double
+            allow(@foreign_keys1).to receive(:each).and_yield('table2', 'fk_id2').and_yield('table3', 'fk_id3')
+
+            allow(@mock_table1).to receive(:select).and_return([])
+            allow(@mock_table1).to receive(:foreign_keys).and_return(@foreign_keys1)
+            allow(@mock_table1).to receive(:backward_keys).and_return([])
+
+            @mock_foreign_value2 = double
+            allow(@mock_table2).to receive(:select_by_id).with(3).and_return(@mock_foreign_value2)
+
+            @mock_foreign_value3 = double
+            @mock_table3 = double
+            allow(@mock_table3).to receive(:name).and_return('table3')
+            allow(@mock_table3).to receive(:select_by_id).with('a_key').and_return(@mock_foreign_value3)
+        end
+
+        it 'should execute select all query' do
             query = 'select from table1'
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
@@ -112,8 +138,6 @@ describe DB do
         end
 
         it 'should execute conditional select query' do
-            allow(@mock_table1).to receive(:select).and_return([])
-
             condition = 't.condition > 1'
             query = "select from table1 where #{condition}"
 
@@ -125,8 +149,6 @@ describe DB do
         end
 
         it 'should not execute invalid query' do
-            allow(@mock_table1).to receive(:select).and_return([])
-
             query = 'select from table1 please'
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
@@ -135,8 +157,6 @@ describe DB do
         end
 
         it 'should remove additional queries and execute first' do
-            allow(@mock_table1).to receive(:select).and_return([])
-
             hack = 'system("date")'
             condition = 't.condition > 1'
             query = "select from table1 where #{condition}; #{hack}"
@@ -150,8 +170,6 @@ describe DB do
         end
 
         it 'should remove queries after the first and not execute invalid command' do
-            allow(@mock_table1).to receive(:select).and_return([])
-
             hack = 'system("date")'
             condition = 't.condition > 1'
             query = "#{hack} ; select from table1 where #{condition}"
@@ -164,8 +182,7 @@ describe DB do
         end
 
         it 'should get result when executing query' do
-            row = double
-            allow(@mock_table1).to receive(:select).and_return([row])
+            allow(@mock_table1).to receive(:select).and_return([@row])
             allow(@mock_table1).to receive(:foreign_keys).and_return([])
 
             condition = 't.condition > 1'
@@ -175,21 +192,17 @@ describe DB do
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
 
             results = db.execute(query)
-            expect(results.first.parent).to be(row)
+            expect(results.first.parent).to be(@row)
         end
 
-        it 'should get foreign key result when executing query' do
-            row = double
-            allow(row).to receive(:fk_id).and_return(3)
+        it 'should add foreign key child when executing query' do
+            mock_result = double
+            allow(mock_result).to receive(:add_child)
+            allow(Result).to receive(:new).and_return(mock_result)
 
-            foreign_keys = double
-            allow(foreign_keys).to receive(:each).and_yield('table2', 'fk_id')
-
-            allow(@mock_table1).to receive(:select).and_return([row])
-            allow(@mock_table1).to receive(:foreign_keys).and_return(foreign_keys)
-
-            mock_foreign_value = double
-            allow(@mock_table2).to receive(:select_by_id).with(3).and_return(mock_foreign_value)
+            allow(@foreign_keys1).to receive(:map).and_return([{ table: :table2, my_key: 'fk_id2', other_key: 'id' }])
+            allow(@mock_table1).to receive(:select).and_return([@row])
+            allow(@mock_table2).to receive(:select).and_return([@mock_foreign_value2])
 
             condition = 't.condition > 1'
             query = "select from table1 where #{condition}"
@@ -197,37 +210,35 @@ describe DB do
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
 
-            results = db.execute(query)
-            expect(results.first.children[:table2]).to eq(mock_foreign_value)
+            expect(mock_result).to receive(:add_child).with(:table1, [@mock_foreign_value2])
+            db.execute(query)
         end
 
-        it 'should get multiple foreign key results when multiple foreign keys exist' do
-            row = double
-            allow(row).to receive(:fk_id2).and_return(3)
-            allow(row).to receive(:fk_id3).and_return('a_key')
+        it 'should add backward foreign key child when executing query' do
+            allow(@row).to receive(:id).and_return('id_value')
 
-            foreign_keys1 = double
-            allow(foreign_keys1).to receive(:each).and_yield('table2', 'fk_id2').and_yield('table3', 'fk_id3')
-
-            allow(@mock_table1).to receive(:select).and_return([row])
-            allow(@mock_table1).to receive(:foreign_keys).and_return(foreign_keys1)
-
-            mock_foreign_value2 = double
-            allow(@mock_table2).to receive(:select_by_id).with(3).and_return(mock_foreign_value2)
-
-            mock_foreign_value3 = double
-            @mock_table3 = double
-            allow(@mock_table3).to receive(:name).and_return('table3')
-            allow(@mock_table3).to receive(:select_by_id).with('a_key').and_return(mock_foreign_value3)
+            mock_result = double
+            allow(mock_result).to receive(:add_child)
+            allow(Result).to receive(:new).and_return(mock_result)
 
             condition = 't.condition > 1'
             query = "select from table1 where #{condition}"
 
-            db = DB.new
-            db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2, table3: @mock_table3 })
+            @backward_keys1 = double
+            allow(@backward_keys1).to receive(:each).and_yield('table2', 'fk_id2')
+            allow(@backward_keys1).to receive(:map).and_return([{ table: :table2, my_key: 'id', other_key: 'fk_id2' }])
 
-            results = db.execute(query)
-            expect(results.first.children).to eq({ table2: mock_foreign_value2, table3: mock_foreign_value3 })
+            allow(@mock_table1).to receive(:select).and_return([@row])
+            allow(@mock_table1).to receive(:foreign_keys).and_return([])
+            allow(@mock_table1).to receive(:backward_keys).and_return(@backward_keys1)
+
+            allow(@mock_table2).to receive(:select).and_return([@mock_foreign_value2])
+
+            db = DB.new
+            db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
+
+            expect(mock_result).to receive(:add_child).with(:table1, [@mock_foreign_value2])
+            db.execute(query)
         end
     end
 end

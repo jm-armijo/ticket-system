@@ -6,6 +6,10 @@ class Row
         @data&.transform_keys!(&:to_sym)
     end
 
+    def id
+        return _id
+    end
+
 private
 
     def method_missing(name)

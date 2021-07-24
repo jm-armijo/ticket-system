@@ -7,69 +7,70 @@ describe Table do
         @foreign_keys = double
         allow(File).to receive(:file?).and_return(true)
         allow(YAML).to receive(:load_file).and_return([])
-        allow(Row).to receive(:new).and_return(double)
     end
 
-    it 'should raise error if initialized with empty file path' do
-        expect { Table.new('', @foreign_keys) }.to raise_error(RuntimeError, 'Path cannot be empty')
-    end
+    context 'on initialization' do
+        it 'should raise error if initialized with empty file path' do
+            expect { Table.new('', @foreign_keys) }.to raise_error(RuntimeError, 'Path cannot be empty')
+        end
 
-    it 'should raise error if initialized with empty file path' do
-        expect { Table.new(nil, @foreign_keys) }.to raise_error(RuntimeError, 'Path cannot be nil')
-    end
+        it 'should raise error if initialized with empty file path' do
+            expect { Table.new(nil, @foreign_keys) }.to raise_error(RuntimeError, 'Path cannot be nil')
+        end
 
-    it 'should raise error when path is invalid' do
-        allow(File).to receive(:file?).and_return(false)
+        it 'should raise error when path is invalid' do
+            allow(File).to receive(:file?).and_return(false)
 
-        expect { Table.new(@path, @foreign_keys) }.to raise_error(RuntimeError, "Invalid path #{@path}")
-    end
+            expect { Table.new(@path, @foreign_keys) }.to raise_error(RuntimeError, "Invalid path #{@path}")
+        end
 
-    it 'should create table when path is valid' do
-        expect { Table.new(@path, @foreign_keys) }.not_to raise_error
-    end
+        it 'should create table when path is valid' do
+            expect { Table.new(@path, @foreign_keys) }.not_to raise_error
+        end
 
-    it 'should save foreign keys when valid' do
-        table = Table.new(@path, @foreign_keys)
-        expect(table.foreign_keys).to equal(@foreign_keys)
-    end
+        it 'should save foreign keys when valid' do
+            table = Table.new(@path, @foreign_keys)
+            expect(table.foreign_keys).to equal(@foreign_keys)
+        end
 
-    it 'should allow getting its name after successfull initialization' do
-        table = Table.new(@path, @foreign_keys)
-        expect(table.name).to eq('test_table')
-    end
+        it 'should allow getting its name after successfull initialization' do
+            table = Table.new(@path, @foreign_keys)
+            expect(table.name).to eq(:test_table)
+        end
 
-    it 'should have 0 rows when loading empty file' do
-        table = Table.new(@path, @foreign_keys)
-        expect(table.rows.length).to eq(0)
-    end
+        it 'should have 0 rows when loading empty file' do
+            table = Table.new(@path, @foreign_keys)
+            expect(table.rows.length).to eq(0)
+        end
 
-    it 'should have 1 rows when loading file with one entry' do
-        content = [{ key1: 'value1', key2: 'value2' }]
-        allow(YAML).to receive(:load_file).and_return(content)
+        it 'should have 1 rows when loading file with one entry' do
+            content = [{ key1: 'value1', key2: 'value2' }]
+            allow(YAML).to receive(:load_file).and_return(content)
 
-        table = Table.new(@path, @foreign_keys)
-        expect(table.rows.length).to eq(1)
-    end
+            table = Table.new(@path, @foreign_keys)
+            expect(table.rows.length).to eq(1)
+        end
 
-    it 'should have 2 rows when loading file with two entry' do
-        content = [
-            { key1: 'value1', key2: 'value2' },
-            { key3: 'value3', key4: 'value4' }
-        ]
-        allow(YAML).to receive(:load_file).and_return(content)
+        it 'should have 2 rows when loading file with two entry' do
+            content = [
+                { key1: 'value1', key2: 'value2' },
+                { key3: 'value3', key4: 'value4' }
+            ]
+            allow(YAML).to receive(:load_file).and_return(content)
 
-        table = Table.new(@path, @foreign_keys)
-        expect(table.rows.length).to eq(2)
-    end
+            table = Table.new(@path, @foreign_keys)
+            expect(table.rows.length).to eq(2)
+        end
 
-    it 'should create one row per entry in the file' do
-        row1 = { key1: 'value1', key2: 'value2' }
-        row2 = { key3: 'value3', key4: 'value4' }
-        allow(YAML).to receive(:load_file).and_return([row1, row2])
+        it 'should create one row per entry in the file' do
+            row1 = { key1: 'value1', key2: 'value2' }
+            row2 = { key3: 'value3', key4: 'value4' }
+            allow(YAML).to receive(:load_file).and_return([row1, row2])
 
-        expect(Row).to receive(:new).with(row1)
-        expect(Row).to receive(:new).with(row2)
-        Table.new(@path, @foreign_keys)
+            expect(Row).to receive(:new).with(row1)
+            expect(Row).to receive(:new).with(row2)
+            Table.new(@path, @foreign_keys)
+        end
     end
 
     context 'when processing a query' do
@@ -159,19 +160,29 @@ describe Table do
         end
     end
 
-    it 'should return call select when calling select_by_id with numeric id' do
-        table = Table.new(@path, @foreign_keys)
-        allow(table).to receive(:select)
+    context 'when selecting by id' do
+        it 'should return call select when calling select_by_id with numeric id' do
+            table = Table.new(@path, @foreign_keys)
+            allow(table).to receive(:select)
 
-        expect(table).to receive(:select).with('t._id == 3')
-        table.select_by_id(3)
+            expect(table).to receive(:select).with('t._id == 3')
+            table.select_by_id(3)
+        end
+
+        it 'should return call select when calling select_by_id with text id' do
+            table = Table.new(@path, @foreign_keys)
+            allow(table).to receive(:select)
+
+            expect(table).to receive(:select).with('t._id == "XYZ"')
+            table.select_by_id('"XYZ"')
+        end
     end
 
-    it 'should return call select when calling select_by_id with text id' do
+    it 'can set backward_keys' do
+        mock = double
         table = Table.new(@path, @foreign_keys)
-        allow(table).to receive(:select)
+        table.backward_keys = mock
 
-        expect(table).to receive(:select).with('t._id == "XYZ"')
-        table.select_by_id('"XYZ"')
+        expect(table.backward_keys).to be(mock)
     end
 end

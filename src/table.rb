@@ -5,11 +5,12 @@ class Table
     attr_reader :name
     attr_reader :rows
     attr_reader :foreign_keys
+    attr_accessor :backward_keys
 
     def initialize(path, foreign_keys)
         @rows = []
         @foreign_keys = foreign_keys
-        @references = []
+        @backward_keys = []
 
         validate_path(path)
         save_name(path)
@@ -39,7 +40,7 @@ private
     end
 
     def save_name(path)
-        @name = File.basename(path, '.*')
+        @name = File.basename(path, '.*').to_sym
     end
 
     def load_rows(path)

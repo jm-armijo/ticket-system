@@ -1,15 +1,22 @@
-require 'forwardable'
 require 'json-schema'
+require_relative './array_hash_iterator'
+require_relative './backward_foreign_keys'
 
 class ForeignKeys
+    include ArrayHashIterator
+
     def initialize(foreign_keys = '[]')
-        @foreign_keys = parse(foreign_keys)
+        @connections = parse(foreign_keys)
     end
 
-    def each
-        @foreign_keys.each do |fk|
-            yield [fk[:table], fk[:key]]
+    def get_backward_keys(child_table)
+        backward_keys = {}
+        each do |parent_table, field|
+            backward_keys[parent_table.to_sym] ||= BackwardForeignKeys.new
+            backward_keys[parent_table.to_sym] << { table: child_table, key: field }
         end
+
+        return backward_keys
     end
 
 private
