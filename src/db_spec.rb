@@ -189,7 +189,7 @@ describe DB do
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
 
-            expect(mock_result).to receive(:add_child).with(:table1, [@mock_foreign_value2])
+            expect(mock_result).to receive(:add_child).with(:table2, [@mock_foreign_value2])
             db.execute(@query_with_conditions)
         end
 
@@ -213,7 +213,7 @@ describe DB do
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
 
-            expect(mock_result).to receive(:add_child).with(:table1, [@mock_foreign_value2])
+            expect(mock_result).to receive(:add_child).with(:table2, [@mock_foreign_value2])
             db.execute(@query_with_conditions)
         end
     end

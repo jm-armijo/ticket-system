@@ -53,8 +53,10 @@ private
 
         combined_keys(table).each do |keys|
             value = row.send(keys[:my_key])
+            next if value.nil?
+
             child = @tables[keys[:table]].select("#{keys[:other_key]} == #{value}")
-            result.add_child(table.name, child) if !child.nil?
+            result.add_child(keys[:table], child) if !child.nil?
         end
 
         return result
