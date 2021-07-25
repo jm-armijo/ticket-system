@@ -55,7 +55,7 @@ private
             value = row.send(keys[:my_key])
             next if value.nil?
 
-            child = @tables[keys[:table]].select("#{keys[:other_key]} == #{value}")
+            child = @tables[keys[:table]].select_by_key(keys[:other_key], value)
             result.add_child(keys[:table], child) if !child.nil?
         end
 
@@ -63,8 +63,8 @@ private
     end
 
     def combined_keys(table)
-        keys1 = table.foreign_keys.map  { |t, k| { table: t.to_sym, my_key: k, other_key: 'id' } }
-        keys2 = table.backward_keys.map { |t, k| { table: t.to_sym, my_key: 'id', other_key: k } }
+        keys1 = table.foreign_keys.map  { |t, k| { table: t.to_sym, my_key: k, other_key: '_id' } }
+        keys2 = table.backward_keys.map { |t, k| { table: t.to_sym, my_key: '_id', other_key: k } }
 
         return keys1 + keys2
     end

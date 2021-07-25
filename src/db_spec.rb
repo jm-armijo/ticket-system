@@ -184,7 +184,7 @@ describe DB do
 
             allow(@foreign_keys1).to receive(:map).and_return([{ table: :table2, my_key: 'fk_id2', other_key: 'id' }])
             allow(@mock_table1).to receive(:select).and_return([@row])
-            allow(@mock_table2).to receive(:select).and_return([@mock_foreign_value2])
+            allow(@mock_table2).to receive(:select_by_key).and_return([@mock_foreign_value2])
 
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
@@ -208,7 +208,7 @@ describe DB do
             allow(@mock_table1).to receive(:foreign_keys).and_return([])
             allow(@mock_table1).to receive(:backward_keys).and_return(@backward_keys1)
 
-            allow(@mock_table2).to receive(:select).and_return([@mock_foreign_value2])
+            allow(@mock_table2).to receive(:select_by_key).and_return([@mock_foreign_value2])
 
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })

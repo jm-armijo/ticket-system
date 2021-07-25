@@ -9,12 +9,21 @@ class Table
 
     def initialize(path, foreign_keys)
         @rows = []
+        @index_table = {}
         @foreign_keys = foreign_keys
         @backward_keys = []
 
         validate_path(path)
         save_name(path)
         load_rows(path)
+        create_index_tables
+    end
+
+    def create_index_tables
+        columns = [:_id]
+        @foreign_keys.each { |_t, key| columns << key.to_sym }
+
+        create_index_tables_for_columns(columns)
     end
 
     def select(condition)
@@ -25,8 +34,9 @@ class Table
         # rubocop:enable Security/Eval
     end
 
-    def select_by_id(id)
-        return select("_id == #{id}")
+    def select_by_key(key, value)
+        index_table = @index_table[key.to_sym]
+        return index_table.key?(value) ? index_table[value] : []
     end
 
 private
@@ -44,5 +54,18 @@ private
     def load_rows(path)
         rows = YAML.load_file(path)
         @rows = rows.map { |row| Row.new(row) }
+    end
+
+    def create_index_tables_for_columns(columns)
+        @rows.each do |row|
+            columns.each do |column|
+                next if row.nil?
+
+                key_value = row.send(column)
+                @index_table[column] ||= {}
+                @index_table[column][key_value] ||= []
+                @index_table[column][key_value] << row
+            end
+        end
     end
 end

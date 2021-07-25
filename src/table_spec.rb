@@ -5,6 +5,7 @@ describe Table do
     before(:each) do
         @path = '/this/is/a/path/to/a/test_table.json'
         @foreign_keys = double
+        allow(@foreign_keys).to receive(:each).and_return([])
         allow(File).to receive(:file?).and_return(true)
         allow(YAML).to receive(:load_file).and_return([])
     end
@@ -161,20 +162,27 @@ describe Table do
     end
 
     context 'when selecting by id' do
-        it 'should return call select when calling select_by_id with numeric id' do
+        it 'should return empty when index key does not exist' do
             table = Table.new(@path, @foreign_keys)
-            allow(table).to receive(:select)
+            table.instance_variable_set(:@index_table, { _id: { key1: double } })
 
-            expect(table).to receive(:select).with('_id == 3')
-            table.select_by_id(3)
+            expect(table.select_by_key('_id', 'key2')).to eq([])
         end
 
-        it 'should return call select when calling select_by_id with text id' do
+        it 'should return references when index key exists' do
+            references = [double, double]
             table = Table.new(@path, @foreign_keys)
-            allow(table).to receive(:select)
+            table.instance_variable_set(:@index_table, { _id: { key1: references } })
 
-            expect(table).to receive(:select).with('_id == "XYZ"')
-            table.select_by_id('"XYZ"')
+            expect(table.select_by_key('_id', :key1)).to eq(references)
+        end
+
+        it 'should return references when index key exists and key is a number' do
+            references = [double, double]
+            table = Table.new(@path, @foreign_keys)
+            table.instance_variable_set(:@index_table, { _id: { 2 => references } })
+
+            expect(table.select_by_key('_id', 2)).to eq(references)
         end
     end
 

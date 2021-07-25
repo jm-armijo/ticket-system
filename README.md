@@ -78,6 +78,14 @@ When data for a table is requested, matching data for a linked table is also ret
 
 Data is returned in different tables. For the example above, the system will output one table with a ticket data, and another table with all users related to that ticket.
 
+### Running Unit Tests
+
+Unit Tests can be executed by running this in the terminal:
+
+```
+rspec -f d .
+```
+
 ## Configuration
 
 The system specifies the tables to be loaded on the `main.rb` file. If more and/or different tables need to be changed they must be added there.
@@ -105,8 +113,7 @@ Sun 25 Jul 2021 17:38:27 AEST
 Future work
 
 * Fix the security issue mentioned above.
-* Use indexes to improve the search performance.
-* Support fields to be returned.
+* Support returned specific columns rather than all fields.
 * Support returning joined tables instead of having related results separated.
 
 ## Author
