@@ -8,16 +8,16 @@ In particular, it allows searching for tickets and the users assigned to them, a
 
 ## Setup
 
-Install the following ruby gems:
+Install `ruby 2.7`, plust the following ruby gems:
 
 ```
-gem install diff/lcs
-gem install forwardable
-gem install json-schema
-gem install rpsec
-gem install rubocop
-gem install terminal-table
-gem install yaml
+diff/lcs
+forwardable
+json-schema
+rpsec
+rubocop
+terminal-table
+yaml
 ```
 
 ## Usage
@@ -115,12 +115,6 @@ will return the system date. By the time this was written the following was retu
 ```
 Sun 25 Jul 2021 17:38:27 AEST
 ```
-
-Future work
-
-* Fix the security issue mentioned above.
-* Support returned specific columns rather than all fields.
-* Support returning joined tables instead of having related results separated.
 
 ## Author
 
