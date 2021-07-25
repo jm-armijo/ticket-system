@@ -7,15 +7,11 @@ class Query
         @table, @conditions = parse(query)
     end
 
-    def valid?
-        return !@table.nil?
-    end
-
 private
 
     def truncate(query)
         parts =  query.strip.split(';')
-        warn 'Warning: The query was truncated.' if parts.length > 1
+        Kernel.warn "Warning: The query was truncated.\n" if parts.length > 1
 
         return parts.first.strip
     end
@@ -24,8 +20,7 @@ private
         if (matches = query.match(/^select \* from (?<table>\w+)(?: where (?<condition>.+))?$/))
             return [matches[:table].to_sym, matches[:condition]]
         else
-            warn "Error: Invalid command `#{query}`."
-            return []
+            raise 'Invalid query.'
         end
     end
 end

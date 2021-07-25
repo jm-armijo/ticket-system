@@ -6,7 +6,7 @@ describe IOInterface do
         io = IOInterface.new
 
         input = nil
-        expect { input = io.read_input }.to output(">> ").to_stdout_from_any_process
+        expect { input = io.read_input }.to output('>> ').to_stdout_from_any_process
         expect(input).to eq('user input')
     end
 
@@ -15,7 +15,7 @@ describe IOInterface do
         io = IOInterface.new
 
         input = nil
-        expect { input = io.read_input }.to output(">> ").to_stdout_from_any_process
+        expect { input = io.read_input }.to output('>> ').to_stdout_from_any_process
         expect(input).to eq("user \ninput")
     end
 

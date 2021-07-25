@@ -12,12 +12,18 @@ class DB
     end
 
     def execute(query)
+        execute_query(query)
+    rescue StandardError
+        raise 'Invalid condition(s).'
+    end
+
+private
+
+    def execute_query(query)
         table = @tables[query.table]
         rows = table.select(query.conditions)
         return rows.map { |row| create_result(table, row) }
     end
-
-private
 
     def create_backward_keys(table)
         backward_keys = table.foreign_keys.get_backward_keys(table.name)

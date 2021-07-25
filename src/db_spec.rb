@@ -136,6 +136,14 @@ describe DB do
             allow(@query_without_conditions).to receive(:conditions).and_return(nil)
         end
 
+        it 'sbould raise when it catches an error' do
+            db = DB.new
+            db.instance_variable_set(:@tables, { table1: @mock_table1 })
+
+            allow(@mock_table1).to receive(:select).and_raise('an error')
+            expect { db.execute(@query_with_conditions) }.to raise_error(RuntimeError, 'Invalid condition(s).')
+        end
+
         it 'should execute select all query' do
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1 })

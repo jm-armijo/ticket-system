@@ -13,7 +13,7 @@ class UserInterface
 
         # Assuming that if it's not a command, then it is a query, since we
         # will check if this is a valid query anyway.
-        process_query(input)
+        try_to_process_query(input)
 
         return true
     end
@@ -35,13 +35,17 @@ private
         return false
     end
 
+    def try_to_process_query(query_string)
+        process_query(query_string)
+    rescue StandardError => e
+        warn "Error: Cannor process query `#{query_string}`. #{e.message}\n\n"
+    end
+
     def process_query(query_string)
         return if query_string.nil? || query_string < "\21"
 
         query = Query.new(query_string)
-        if query.valid?
-            results = @db.execute(query)
-            @io.show_results(query.table, results)
-        end
+        results = @db.execute(query)
+        @io.show_results(query.table, results)
     end
 end

@@ -57,63 +57,17 @@ describe Query do
 
     it 'should error when query is invalid' do
         hack = 'system("date")'
-        expected_message = "Error: Invalid command `#{hack}`.\n"
-        expect { Query.new(hack) }.to output(expected_message).to_stderr_from_any_process
-    end
-
-    it 'should have nil table when query is invalid' do
-        hack = 'system("date")'
-        expected_message = "Error: Invalid command `#{hack}`.\n"
-
-        query = nil
-        expect { query = Query.new(hack) }.to output(expected_message).to_stderr_from_any_process
-        expect(query.table).to be_nil
-    end
-
-    it 'should have nil conditions when query is invalid' do
-        hack = 'system("date")'
-        expected_message = "Error: Invalid command `#{hack}`.\n"
-
-        query = nil
-        expect { query = Query.new(hack) }.to output(expected_message).to_stderr_from_any_process
-        expect(query.conditions).to be_nil
+        expect { Query.new(hack) }.to raise_error(RuntimeError, 'Invalid query.')
     end
 
     it 'should error when truncated query is invalid' do
+        allow(Kernel).to receive(:warn)
         hack = 'system("date")'
         query_string = "#{hack} ; select * from table1 where value == 1"
 
-        expected_truncate_message = "Warning: The query was truncated.\n"
-        expected_error_message = "Error: Invalid command `#{hack}`.\n"
-        expected_message = expected_truncate_message + expected_error_message
-
-        expect { Query.new(query_string) }.to output(expected_message).to_stderr_from_any_process
-    end
-
-    it 'should have nil table when truncated query is invalid' do
-        hack = 'system("date")'
-        query_string = "#{hack} ; select * from table1 where value == 1"
-
-        expected_truncate_message = "Warning: The query was truncated.\n"
-        expected_error_message = "Error: Invalid command `#{hack}`.\n"
-        expected_message = expected_truncate_message + expected_error_message
-
-        query = nil
-        expect { query = Query.new(query_string) }.to output(expected_message).to_stderr_from_any_process
-        expect(query.table).to be_nil
-    end
-
-    it 'should have nil conditions when truncated query is invalid' do
-        hack = 'system("date")'
-        query_string = "#{hack} ; select * from table1 where value == 1"
-
-        expected_truncate_message = "Warning: The query was truncated.\n"
-        expected_error_message = "Error: Invalid command `#{hack}`.\n"
-        expected_message = expected_truncate_message + expected_error_message
-
-        query = nil
-        expect { query = Query.new(query_string) }.to output(expected_message).to_stderr_from_any_process
-        expect(query.conditions).to be_nil
+        message = "Warning: The query was truncated.\n"
+        expect(Kernel).to receive(:warn).with(message)
+        expect { Query.new(query_string) }.to raise_error(RuntimeError, 'Invalid query.')
     end
 
     it 'should not error when truncated query is valid' do
