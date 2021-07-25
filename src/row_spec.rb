@@ -47,4 +47,23 @@ describe Row do
 
         expect(row.headers).to eq(%i[key1 key2])
     end
+
+    it 'should return the values' do
+        headers = %i[key1 key2]
+        data = { 'key1' => 'value1', 'key2' => 'value2' }
+        row = Row.new(data)
+
+        expect(row.values(headers)).to eq(['value1', 'value2'])
+    end
+
+    it 'should return the values when header is not found' do
+        mock_nil = double
+        allow(NilObject).to receive(:new).and_return(mock_nil)
+
+        headers = %i[key1 key2 key3]
+        data = { 'key1' => 'value1', 'key2' => 'value2' }
+        row = Row.new(data)
+
+        expect(row.values(headers)).to eq(['value1', 'value2', mock_nil])
+    end
 end

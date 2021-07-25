@@ -213,4 +213,14 @@ describe NilObject do
         nil_object = NilObject.new
         expect(nil_object.negative?).to be(false)
     end
+
+    it 'should return array with nil when casted using to_a' do
+        nil_object = NilObject.new
+        expect(nil_object.to_a).to eq([nil])
+    end
+
+    it 'should return array with nil when casted using to_ary' do
+        nil_object = NilObject.new
+        expect(nil_object.to_ary).to eq([nil])
+    end
 end

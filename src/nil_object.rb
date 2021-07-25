@@ -49,13 +49,21 @@ class NilObject
         return other.nil?
     end
 
+    def to_a
+        return [nil]
+    end
+
+    def to_ary
+        return to_a
+    end
+
 private
 
     def method_missing(_name, *_args, &_block)
         return NilObject.new
     end
 
-    def respond_to_missing?(_name)
+    def respond_to_missing?(_name, *_args)
         return true
     end
 end

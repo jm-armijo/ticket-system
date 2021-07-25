@@ -1,37 +1,30 @@
 class Result
-    attr_reader :parent
-    attr_reader :children
+    def initialize(headers, row)
+        @headers = headers
+        @values = row.values(headers)
 
-    def initialize(parent)
-        headers = parent.headers
-        rows = extract_rows(headers, [parent])
-
-        @parent = { headers: headers, values: rows }
-        @children = {}
+        @appended_headers = []
+        @appended_values = []
     end
 
-    def add_child(table, table_children)
-        headers = extract_headers(table_children)
-        rows = extract_rows(headers, table_children)
-
-        @children[table] = { headers: headers, values: rows }
+    def add_column(original_name, new_name, rows)
+        @appended_headers << new_name
+        @appended_values << rows.map { |row| row.send(original_name) }.join('|')
     end
 
-private
+    def remove_column(name)
+        index = @headers.find_index(name)
+        return if index.nil?
 
-    def extract_headers(result_sets)
-        headers = []
-        result_sets.each do |result_set|
-            headers = (headers + result_set.headers).uniq
-        end
-        return headers
+        @headers.delete_at(index)
+        @values.delete_at(index)
     end
 
-    def extract_rows(headers, result_sets)
-        rows = []
-        result_sets.each do |row|
-            rows << headers.map { |h| row.send(h) }
-        end
-        return rows
+    def headers
+        return @headers + @appended_headers
+    end
+
+    def values
+        return @values + @appended_values
     end
 end

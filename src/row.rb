@@ -14,6 +14,12 @@ class Row
         return @data.keys
     end
 
+    def values(headers)
+        return headers.map do |header|
+            @data.key?(header) ? @data[header] : NilObject.new
+        end
+    end
+
 private
 
     def method_missing(name)

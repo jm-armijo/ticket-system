@@ -13,8 +13,8 @@ class DB
 
     def execute(query)
         execute_query(query)
-    rescue StandardError
-        raise 'Invalid condition(s).'
+    rescue StandardError => e
+        raise "Invalid condition(s). #{e.message}#{e.backtrace}"
     end
 
 private
@@ -49,17 +49,29 @@ private
     end
 
     def create_result(table, row)
-        result = Result.new(row)
+        result = Result.new(table.headers, row)
 
         combined_keys(table).each do |keys|
             value = row.send(keys[:my_key])
             next if value.nil?
 
-            child = @tables[keys[:table]].select_by_key(keys[:other_key], value)
-            result.add_child(keys[:table], child) if !child.nil?
+            join_tables(table, result, keys, value)
         end
 
         return result
+    end
+
+    def join_tables(table, result, keys, value)
+        other_table = @tables[keys[:table]]
+        child = other_table.select_by_key(keys[:other_key], value)
+
+        update_result(table.headers, result, other_table.headers, child)
+    end
+
+    def update_result(table_headers, result, other_headers, child)
+        result.add_column(:subject, :tickets, child) if other_headers.include?(:subject)
+        result.add_column(:name, :assignee_name, child) if other_headers.include?(:name)
+        result.remove_column(:assignee_id) if table_headers.include?(:assignee_id)
     end
 
     def combined_keys(table)

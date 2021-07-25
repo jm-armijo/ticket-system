@@ -78,12 +78,18 @@ When data for a table is requested, matching data for a linked table is also ret
 
 Data is returned in different tables. For the example above, the system will output one table with a ticket data, and another table with all users related to that ticket.
 
-### Running Unit Tests
+### Testing
 
 Unit Tests can be executed by running this in the terminal:
 
 ```
 rspec -f d .
+```
+
+Static code analysis can be executed by running:
+
+```
+rubocop
 ```
 
 ## Configuration

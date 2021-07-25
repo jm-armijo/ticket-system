@@ -11,23 +11,16 @@ class IOInterface
         Kernel.puts "\n#{message}" if !message.nil?
     end
 
-    def show_results(name, results)
-        results.each_with_index do |result, index|
-            show_table(name, result.parent)
-            result.children.each_pair { |t, c| show_table(t, c) }
-            show_separator if index < results.length - 1
-        end
+    def show_results(headers, values)
+        values.length.zero? ? warn('No results found') : show_table(headers, values)
     end
 
 private
 
-    def show_table(name, result)
-        return if result[:values].length.zero?
-
+    def show_table(headers, values)
         table = Terminal::Table.new
-        table.title    = name.capitalize if name != ''
-        table.headings = result[:headers]
-        table.rows     = result[:values]
+        table.headings = headers
+        table.rows     = values
         table.style    = { all_separators: true, border: :unicode_round }
 
         Kernel.puts table

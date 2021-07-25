@@ -51,7 +51,13 @@ describe IOInterface do
         allow(Kernel).to receive(:puts).and_return(nil)
 
         io = IOInterface.new
-        expect(Kernel).to receive(:puts).with(mock_terminal).twice
-        io.show_results(:table1, [result])
+        expect(Kernel).to receive(:puts).with(mock_terminal).once
+        io.show_results(double, [result])
+    end
+
+    it 'should print message when there are no results to show' do
+        io = IOInterface.new
+
+        expect { io.show_results(double, []) }.to output("No results found\n").to_stderr_from_any_process
     end
 end

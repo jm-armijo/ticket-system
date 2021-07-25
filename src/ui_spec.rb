@@ -45,7 +45,7 @@ describe UserInterface do
 
     context 'when processing invalid user input' do
         before(:each) do
-            @message = "Error: Cannor process query `bad command`. an error\n\n"
+            @message = "Error: Cannot process query `bad command`. an error\n\n"
             allow(Query).to receive(:new).and_raise('an error')
         end
 
@@ -96,7 +96,7 @@ describe UserInterface do
             ui = UserInterface.new(@db, @io)
 
             expect(@db).to receive(:execute)
-            message = "Error: Cannor process query `bad command`. error in condition\n\n"
+            message = "Error: Cannot process query `bad command`. error in condition\n\n"
             expect { ui.run }.to output(message).to_stderr_from_any_process
         end
 
@@ -105,7 +105,7 @@ describe UserInterface do
             ui = UserInterface.new(@db, @io)
 
             expect(@io).not_to receive(:show_results)
-            message = "Error: Cannor process query `bad command`. error in condition\n\n"
+            message = "Error: Cannot process query `bad command`. error in condition\n\n"
             expect { ui.run }.to output(message).to_stderr_from_any_process
         end
     end
@@ -121,6 +121,10 @@ describe UserInterface do
         end
 
         it 'should execute query when input is valid' do
+            result = double
+            allow(result).to receive(:headers).and_return(double)
+            allow(result).to receive(:values).and_return(double)
+            allow(@db).to receive(:execute).and_return([result])
             allow(@io).to receive(:read_input).and_return('valid query')
             ui = UserInterface.new(@db, @io)
 
@@ -129,6 +133,10 @@ describe UserInterface do
         end
 
         it 'should show results when input is valid' do
+            result = double
+            allow(result).to receive(:headers).and_return(double)
+            allow(result).to receive(:values).and_return(double)
+            allow(@db).to receive(:execute).and_return([result])
             allow(@io).to receive(:read_input).and_return('valid query')
 
             ui = UserInterface.new(@db, @io)
@@ -138,6 +146,10 @@ describe UserInterface do
         end
 
         it 'should return true when input is valid' do
+            result = double
+            allow(result).to receive(:headers).and_return(double)
+            allow(result).to receive(:values).and_return(double)
+            allow(@db).to receive(:execute).and_return([result])
             allow(@io).to receive(:read_input).and_return('bad command')
 
             ui = UserInterface.new(@db, @io)

@@ -64,13 +64,39 @@ describe Table do
         end
 
         it 'should create one row per entry in the file' do
-            row1 = { key1: 'value1', key2: 'value2' }
-            row2 = { key3: 'value3', key4: 'value4' }
-            allow(YAML).to receive(:load_file).and_return([row1, row2])
+            yaml_row1 = { _id: 'value1', key2: 'value2' }
+            yaml_row2 = { _id: 'value3', key2: 'value4' }
+            allow(YAML).to receive(:load_file).and_return([yaml_row1, yaml_row2])
 
-            expect(Row).to receive(:new).with(row1)
-            expect(Row).to receive(:new).with(row2)
+            row1 = double
+            row2 = double
+            allow(row1).to receive(:headers).and_return(%i[_id key2])
+            allow(row2).to receive(:headers).and_return(%i[_id key2])
+            allow(row1).to receive(:_id).and_return('123')
+            allow(row2).to receive(:_id).and_return('124')
+            allow(Row).to receive(:new).and_return(row1, row2)
+
+            expect(Row).to receive(:new).with(yaml_row1).and_return(row1)
+            expect(Row).to receive(:new).with(yaml_row2).and_return(row2)
+
             Table.new(@path, @foreign_keys)
+        end
+
+        it 'should have a list of all headers' do
+            yaml_row1 = { _id: 'value1', key2: 'value2' }
+            yaml_row2 = { _id: 'value3', key3: 'value4' }
+            allow(YAML).to receive(:load_file).and_return([yaml_row1, yaml_row2])
+
+            row1 = double
+            row2 = double
+            allow(row1).to receive(:headers).and_return(%i[_id key2])
+            allow(row2).to receive(:headers).and_return(%i[_id key3])
+            allow(row1).to receive(:_id).and_return('123')
+            allow(row2).to receive(:_id).and_return('124')
+            allow(Row).to receive(:new).and_return(row1, row2)
+
+            table = Table.new(@path, @foreign_keys)
+            expect(table.headers).to eq(%i[_id key2 key3])
         end
     end
 

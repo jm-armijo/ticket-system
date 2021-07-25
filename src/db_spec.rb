@@ -141,7 +141,7 @@ describe DB do
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
 
             allow(@mock_table1).to receive(:select).and_raise('an error')
-            expect { db.execute(@query_with_conditions) }.to raise_error(RuntimeError, 'Invalid condition(s).')
+            expect { db.execute(@query_with_conditions) }.to raise_error(RuntimeError)
         end
 
         it 'should execute select all query' do
@@ -169,6 +169,7 @@ describe DB do
 
             allow(@mock_table1).to receive(:select).and_return([@row])
             allow(@mock_table1).to receive(:foreign_keys).and_return([])
+            allow(@mock_table1).to receive(:headers).and_return(double)
 
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1 })
@@ -179,17 +180,23 @@ describe DB do
 
         it 'should add foreign key child when executing query' do
             mock_result = double
-            allow(mock_result).to receive(:add_child)
+            allow(mock_result).to receive(:add_column)
             allow(Result).to receive(:new).and_return(mock_result)
 
+            headers1 = double
+            headers2 = double
+            allow(headers1).to receive(:include?).and_return(false)
+            allow(headers2).to receive(:include?).and_return(true)
             allow(@foreign_keys1).to receive(:map).and_return([{ table: :table2, my_key: 'fk_id2', other_key: 'id' }])
             allow(@mock_table1).to receive(:select).and_return([@row])
+            allow(@mock_table1).to receive(:headers).and_return(headers1)
             allow(@mock_table2).to receive(:select_by_key).and_return([@mock_foreign_value2])
+            allow(@mock_table2).to receive(:headers).and_return(headers2)
 
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
 
-            expect(mock_result).to receive(:add_child).with(:table2, [@mock_foreign_value2])
+            expect(mock_result).to receive(:add_column).with(:subject, :tickets, [@mock_foreign_value2])
             db.execute(@query_with_conditions)
         end
 
@@ -197,23 +204,30 @@ describe DB do
             allow(@row).to receive(:id).and_return('id_value')
 
             mock_result = double
-            allow(mock_result).to receive(:add_child)
+            allow(mock_result).to receive(:add_column)
+            allow(mock_result).to receive(:remove_column)
             allow(Result).to receive(:new).and_return(mock_result)
 
             @backward_keys1 = double
             allow(@backward_keys1).to receive(:each).and_yield('table2', 'fk_id2')
             allow(@backward_keys1).to receive(:map).and_return([{ table: :table2, my_key: 'id', other_key: 'fk_id2' }])
 
+            headers1 = double
+            headers2 = double
+            allow(headers1).to receive(:include?).and_return(false)
+            allow(headers2).to receive(:include?).and_return(true)
             allow(@mock_table1).to receive(:select).and_return([@row])
+            allow(@mock_table1).to receive(:headers).and_return(headers1)
             allow(@mock_table1).to receive(:foreign_keys).and_return([])
             allow(@mock_table1).to receive(:backward_keys).and_return(@backward_keys1)
 
             allow(@mock_table2).to receive(:select_by_key).and_return([@mock_foreign_value2])
+            allow(@mock_table2).to receive(:headers).and_return(headers2)
 
             db = DB.new
             db.instance_variable_set(:@tables, { table1: @mock_table1, table2: @mock_table2 })
 
-            expect(mock_result).to receive(:add_child).with(:table2, [@mock_foreign_value2])
+            expect(mock_result).to receive(:add_column).with(:name, :assignee_name, [@mock_foreign_value2])
             db.execute(@query_with_conditions)
         end
     end

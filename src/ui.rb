@@ -38,7 +38,7 @@ private
     def try_to_process_query(query_string)
         process_query(query_string)
     rescue StandardError => e
-        warn "Error: Cannor process query `#{query_string}`. #{e.message}\n\n"
+        warn "Error: Cannot process query `#{query_string}`. #{e.message}\n\n"
     end
 
     def process_query(query_string)
@@ -46,6 +46,10 @@ private
 
         query = Query.new(query_string)
         results = @db.execute(query)
-        @io.show_results(query.table, results)
+
+        headers = results.first.headers
+        rows = results.map(&:values)
+
+        @io.show_results(headers, rows)
     end
 end

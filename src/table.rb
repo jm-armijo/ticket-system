@@ -2,6 +2,7 @@ require 'yaml'
 require_relative './row'
 
 class Table
+    attr_reader :headers
     attr_reader :name
     attr_reader :rows
     attr_reader :foreign_keys
@@ -12,10 +13,12 @@ class Table
         @index_table = {}
         @foreign_keys = foreign_keys
         @backward_keys = []
+        @headers = []
 
         validate_path(path)
         save_name(path)
         load_rows(path)
+        collect_table_headers
         create_index_tables
     end
 
@@ -54,6 +57,10 @@ private
     def load_rows(path)
         rows = YAML.load_file(path)
         @rows = rows.map { |row| Row.new(row) }
+    end
+
+    def collect_table_headers
+        @headers |= @rows.map(&:headers).flatten
     end
 
     def create_index_tables_for_columns(columns)
